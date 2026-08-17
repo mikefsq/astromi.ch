@@ -1,6 +1,6 @@
 // mgpsnap is a small CLI over the mgpbox driver: it opens an Astromi.ch MGPBox (by port
 // or the first one discovered), enables meteo + GPS streaming, and prints the latest
-// weather / GPS / calibration snapshot — once, or continuously with -watch.
+// weather / GPS / calibration snapshot
 package main
 
 import (
@@ -21,11 +21,11 @@ func main() {
 
 func run() error {
 	var (
-		port    = flag.String("port", "", "serial port (e.g. /dev/cu.usbserial-XXXX); default: first discovered")
-		list    = flag.Bool("list", false, "discover MGPBox ports and exit")
-		watch   = flag.Duration("watch", 0, "reprint every interval (e.g. 2s); 0 = single shot")
-		raw     = flag.Bool("raw", false, "also echo every raw line received")
-		settle  = flag.Duration("settle", 3*time.Second, "time to wait for the first readings after enabling streaming")
+		port   = flag.String("port", "", "serial port (e.g. /dev/cu.usbserial-XXXX); default: first discovered")
+		list   = flag.Bool("list", false, "discover MGPBox ports and exit")
+		watch  = flag.Duration("watch", 0, "reprint every interval (e.g. 2s); 0 = single shot")
+		raw    = flag.Bool("raw", false, "also echo every raw line received")
+		settle = flag.Duration("settle", 3*time.Second, "time to wait for the first readings after enabling streaming")
 	)
 	flag.Parse()
 

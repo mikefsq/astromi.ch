@@ -1,11 +1,11 @@
 # astromi.ch
 
-Pure-Go drivers for [Astromi.ch](https://astromi.ch) astronomy accessories.
+Go drivers for [Astromi.ch](https://astromi.ch) astronomy accessories.
 
 ## `mgpbox` — MGPBox / MGPBox v2
 
 A driver for the **MGPBox**: a combined **GPS + weather** (temperature / humidity /
-pressure / dewpoint) + **dew-heater** box. The v2 units use an **FTDI FT231X** USB-serial
+pressure / dewpoint) box. The v2 units use an **FTDI FT231X** USB-serial
 bridge (VID `0x0403`, `/dev/cu.usbserial-*` / `/dev/ttyUSB*`) at **38400 8N1**.
 
 The box **streams** lines continuously, so the driver runs a background reader that keeps

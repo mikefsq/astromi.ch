@@ -1,19 +1,18 @@
-// Package mgpbox is a pure-Go driver for the Astromi.ch MGPBox / MGPBox v2 — a combined
-// GPS + weather (temperature / humidity / pressure / dewpoint) + dew-heater box. The v2
+// Package mgpbox is a Go driver for the Astromi.ch MGPBox / MGPBox v2 — a combined
+// GPS + weather (temperature / humidity / pressure / dewpoint) box. The v2
 // units use an FTDI FT231X USB-serial bridge (VID 0x0403, appearing as /dev/cu.usbserial-*
 // or /dev/ttyUSB*) at 38400 8N1.
 //
-// Unlike request/response instruments (e.g. the Unihedron SQM), the MGPBox *streams*
-// lines continuously once meteo/GPS reporting is enabled. This driver runs a background
-// reader that parses each line and keeps the latest Meteo / Fix / Calibration snapshot,
-// and exposes the small ":cmd*" command set. It speaks the protocol directly over
-// go.bug.st/serial — no vendor library — and is CGO-free.
+// The MGPBox *streams* lines continuously once meteo/GPS reporting is enabled. This
+// driver runs a background reader that parses each line and keeps the latest
+// Meteo / Fix / Calibration snapshot, and exposes the small ":cmd*" command set.
+// It speaks the protocol directly over go.bug.st/serial.
 //
 // Line formats accepted: the proprietary $PXDR (meteo) and $PCAL (calibration) sentences,
 // and standard NMEA GPS sentences ($GPGGA/$GPGSA/$GPRMC/...). Banner and $PMTK/LOG lines
 // are ignored.
 //
-// Note the MGPBox shares FTDI's VID 0x0403 with the Unihedron SQM; discovery tells them
+// Note the MGPBox shares FTDI's VID 0x0403 with other FTDI devices; discovery tells them
 // apart by content (and the differing line speed), not by VID — see Discover.
 package mgpbox
 
