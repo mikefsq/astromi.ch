@@ -107,8 +107,6 @@ func (m *MGPBox) readLoop() {
 	}
 }
 
-// --- Snapshot accessors (each returns a copy of the latest state) ---
-
 // Meteo returns the latest weather snapshot and whether any meteo field has been parsed.
 func (m *MGPBox) Meteo() (Meteo, bool) {
 	m.mu.Lock()
@@ -130,8 +128,6 @@ func (m *MGPBox) Calibration() (Calibration, bool) {
 	defer m.mu.Unlock()
 	return m.cal, m.cal.Valid
 }
-
-// --- Commands (":cmd*") ---
 
 func (m *MGPBox) send(cmd string) error {
 	if _, err := m.t.Write([]byte(":" + cmd + "*")); err != nil {
@@ -157,6 +153,5 @@ func (m *MGPBox) CalGet() error { return m.send("calget") }
 // RebootGps restarts the GPS module.
 func (m *MGPBox) RebootGps() error { return m.send("rebootGps") }
 
-// Command sends a raw command body (without the leading ':' or trailing '*') — the escape
-// hatch for the device commands not wrapped above (e.g. "reboot", "devicetype", "calreset").
+// Command mgpbox reads device status and provides diagnostic controls.
 func (m *MGPBox) Command(body string) error { return m.send(body) }

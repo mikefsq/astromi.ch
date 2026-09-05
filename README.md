@@ -1,55 +1,88 @@
 # astromi.ch
 
-Go drivers for [Astromi.ch](https://astromi.ch) astronomy accessories.
+Go driver for the Astromi.ch MGPBox / MGPBox v2 weather and GPS accessory.
+The `mgpbox` package reads temperature, humidity, pressure, dew point, GPS,
+and calibration data over USB-serial. It has been tested with an MGPBox v2.
 
-## `mgpbox` — MGPBox / MGPBox v2
+## Build and run
 
-A driver for the **MGPBox**: a combined **GPS + weather** (temperature / humidity /
-pressure / dewpoint) box. The v2 units use an **FTDI FT231X** USB-serial
-bridge (VID `0x0403`, `/dev/cu.usbserial-*` / `/dev/ttyUSB*`) at **38400 8N1**.
+Requires Go 1.25 or later.
 
-The box **streams** lines continuously, so the driver runs a background reader that keeps
-the latest snapshot; accessors return it. Hardware-validated against a live MGPBox v2
-(FT231X, serial `D30B0DP6`).
+```sh
+go build -o mgpsnap ./cmd/mgpsnap
+./mgpsnap -list
+./mgpsnap
+./mgpsnap -watch 2s
+```
+
+The default run discovers a box, enables streaming, and prints a snapshot.
+Use `-port` to select a serial port and `-raw` to show received lines.
+Close other applications using the same port; concurrent readers can consume
+each other's data.
+
+## Use the library
 
 ```go
-box, err := mgpbox.Open()        // discover; or OpenPort(...), OpenBySerial("D30B0DP6")
-if err != nil { log.Fatal(err) }
-defer box.Close()
-box.EnableMeteo()                // ensure meteo streaming is on
+package main
 
-me, _ := box.Meteo()             // Temperature/Humidity/Pressure(hPa)/Dewpoint + dew heater
-fx, _ := box.Fix()               // GPS lat/long/alt/sats/time (when it has a fix)
-cal, _ := box.Calibration()      // after CalGet()
+import (
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/mikefsq/astromi.ch/mgpbox"
+)
+
+func run() error {
+    box, err := mgpbox.Open()
+    if err != nil {
+        return err
+    }
+    defer box.Close()
+    if err := box.EnableMeteo(); err != nil {
+        return err
+    }
+
+    deadline := time.Now().Add(5 * time.Second)
+    for time.Now().Before(deadline) {
+        if weather, ok := box.Meteo(); ok {
+            fmt.Println(weather)
+            return nil
+        }
+        time.Sleep(100 * time.Millisecond)
+    }
+    return fmt.Errorf("no weather sample received")
+}
+
+func main() {
+    if err := run(); err != nil {
+        log.Fatal(err)
+    }
+}
 ```
 
-Commands: `EnableMeteo`/`EnableGPSFix`, `GpsOn`/`GpsOff`, `CalGet`, `RebootGps`, and
-`Command(body)` for anything else — e.g. `Command("reboot")`, `Command("devicetype")`,
-`Command("calreset")` (each wire command is `:body*`).
+A background reader keeps the latest snapshots. `Meteo`, `Fix`, and
+`Calibration` return a value and a boolean indicating whether a sample is
+available. Check the GPS fix state before using its coordinates.
+`OpenBySerial` selects a box by its FTDI bridge serial.
 
-Line formats parsed: `$PXDR` (meteo; pressure in Pascal/bar normalised to hPa), `$PCAL`
-(calibration + MM/MG streaming flags), and standard NMEA GPS (`$GPGGA/$GPGSA/$GPRMC`).
-Banner / `$PMTK` / `LOG` lines are ignored.
+`EnableGPSFix`, `GpsOn`, `GpsOff`, `CalGet`, and `RebootGps` expose device
+commands. `Command(body)` sends other commands using the `:body*` format.
 
-### CLI — `mgpsnap`
+## Protocol and testing
 
+The port uses 38400 baud, 8N1. Discovery identifies MGPBox data rather than
+relying only on the shared FTDI vendor ID. The parser handles `$PXDR`
+weather, `$PCAL` calibration, and NMEA GPS sentences. Pressure is normalized
+to hPa; banner and unrelated status lines are ignored.
+
+```sh
+go test -race ./...
 ```
-go build ./cmd/mgpsnap
-./mgpsnap                 # discover, enable streaming, print a snapshot
-./mgpsnap -watch 2s       # poll
-./mgpsnap -list           # discover MGPBox ports (probes FTDI ports for MGPBox content)
-./mgpsnap -raw            # also echo every raw line
-./mgpsnap -port /dev/cu.usbserial-XXXX
-```
 
-### Notes
-
-- Shares FTDI's VID `0x0403` with the Unihedron SQM; `Discover` tells them apart by
-  content (and the differing line speed — MGPBox 38400 vs SQM 115200), not by VID.
-- On macOS, `/dev/cu.*` allows concurrent opens: quit any app holding the port first, or
-  it will consume the stream.
-- The reference implementation this was distilled from is `mikefsq/gomgpbox`.
+Tests exercise parsing and streaming with fake transports. Applications can
+supply their own `Transport` through `mgpbox.New`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE).

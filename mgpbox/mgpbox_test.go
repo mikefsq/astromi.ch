@@ -14,8 +14,6 @@ func init() { now = func() time.Time { return fixedTime } }
 
 func approx(a, b float64) bool { return math.Abs(a-b) < 1e-6 }
 
-// --- Parser unit tests (drive parseLine directly, no reader goroutine) ---
-
 func TestParsePXDR(t *testing.T) {
 	// Exact sentence captured live from an MGPBox v2 (FT231X @ 38400): pressure in Pascal
 	// (unit "P", 101531.0 → 1015.31 hPa), plus a trailing extra field before the checksum.
@@ -76,8 +74,6 @@ func TestParseIgnored(t *testing.T) {
 		}
 	}
 }
-
-// --- Streaming integration test (fake transport feeds lines to the reader) ---
 
 // fakeT serves canned bytes then blocks reads until Close, like a real streaming port.
 type fakeT struct {

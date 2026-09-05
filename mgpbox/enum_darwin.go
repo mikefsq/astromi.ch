@@ -9,13 +9,7 @@ import (
 	bugst "go.bug.st/serial"
 )
 
-// enumeratePorts lists the FTDI USB-serial ports on macOS by the device-name convention
-// (/dev/cu.usbserial-*). Reading the USB VID on macOS would require the enumerator's cgo
-// (IOKit) path, which has no CGO_ENABLED=0 fallback and would break cross-compilation to
-// darwin; GetPortsList is pure Go, so discovery here is name-based. The FT231X bridge
-// presents as a usbserial node (as does the Unihedron SQM); Discover then confirms which
-// one is actually an MGPBox by its streamed content. The serial is recoverable from the
-// node name (/dev/cu.usbserial-<SERIAL>).
+// enumeratePorts finds candidate serial ports by macOS device names, without cgo.
 func enumeratePorts() ([]DeviceInfo, error) {
 	names, err := bugst.GetPortsList()
 	if err != nil {

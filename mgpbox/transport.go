@@ -1,19 +1,4 @@
-// Package mgpbox is a Go driver for the Astromi.ch MGPBox / MGPBox v2 — a combined
-// GPS + weather (temperature / humidity / pressure / dewpoint) box. The v2
-// units use an FTDI FT231X USB-serial bridge (VID 0x0403, appearing as /dev/cu.usbserial-*
-// or /dev/ttyUSB*) at 38400 8N1.
-//
-// The MGPBox *streams* lines continuously once meteo/GPS reporting is enabled. This
-// driver runs a background reader that parses each line and keeps the latest
-// Meteo / Fix / Calibration snapshot, and exposes the small ":cmd*" command set.
-// It speaks the protocol directly over go.bug.st/serial.
-//
-// Line formats accepted: the proprietary $PXDR (meteo) and $PCAL (calibration) sentences,
-// and standard NMEA GPS sentences ($GPGGA/$GPGSA/$GPRMC/...). Banner and $PMTK/LOG lines
-// are ignored.
-//
-// Note the MGPBox shares FTDI's VID 0x0403 with other FTDI devices; discovery tells them
-// apart by content (and the differing line speed), not by VID — see Discover.
+// Package mgpbox reads Astromi.ch MGPBox weather and GPS data over USB-serial.
 package mgpbox
 
 // FTDI USB vendor ID (the FT231X bridge on MGPBox v2) and the MGPBox line speed. The PID
@@ -33,8 +18,8 @@ type Transport interface {
 	Close() error
 }
 
-// DeviceInfo identifies an opened serial port plus the USB-descriptor properties the
-// enumerator reports for it before the port is opened.
+// DeviceInfo contains serial-port discovery metadata.
+// Serial identifies the USB bridge, not a protocol-level device serial.
 type DeviceInfo struct {
 	Port    string // e.g. /dev/cu.usbserial-XXXX, /dev/ttyUSB0, COM3
 	Serial  string // USB iSerialNumber (from the enumerator); "" if unavailable
