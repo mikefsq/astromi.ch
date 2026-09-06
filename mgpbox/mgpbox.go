@@ -153,5 +153,6 @@ func (m *MGPBox) CalGet() error { return m.send("calget") }
 // RebootGps restarts the GPS module.
 func (m *MGPBox) RebootGps() error { return m.send("rebootGps") }
 
-// Command mgpbox reads device status and provides diagnostic controls.
+// Command sends a raw command body (without the leading ':' or trailing '*'). The escape
+// hatch for device commands with no typed method (e.g. "reboot", "devicetype", "calreset").
 func (m *MGPBox) Command(body string) error { return m.send(body) }

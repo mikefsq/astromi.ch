@@ -1,9 +1,9 @@
 // Package mgpbox reads Astromi.ch MGPBox weather and GPS data over USB-serial.
 package mgpbox
 
-// FTDI USB vendor ID (the FT231X bridge on MGPBox v2) and the MGPBox line speed. The PID
-// varies by bridge/firmware, so discovery matches the vendor (and, on macOS, the usbserial
-// name) and confirms identity by the streamed content rather than a fixed PID.
+// FTDI USB vendor ID (the FT231X bridge on MGPBox v2) and the MGPBox line speed. Discovery
+// matches vendor and PID (on macOS, the usbserial name) to pick candidates, then confirms
+// identity by the streamed content. The matched PIDs live in enum_other.go.
 const (
 	VID  uint16 = 0x0403
 	Baud        = 38400
